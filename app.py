@@ -100,9 +100,13 @@ with st.sidebar:
                           help="Loads a synthetic 3-month BDT statement with pre-generated categories and insights.")
     cur_label = st.selectbox("Currency", list(CURRENCIES), index=0)
     SYM, CODE = CURRENCIES[cur_label]
-    api_key = st.text_input("Gemini API key", type="password", disabled=demo_mode,
-                            value=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", ""),
-                            help="Free key from aistudio.google.com. Kept only in this browser session.")
+    # A key from .env / Streamlit secrets stays on the server: it is never put into the widget,
+    # because a widget's value is sent to the visitor's browser.
+    server_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
+    typed_key = st.text_input("Gemini API key", type="password", disabled=demo_mode,
+                              placeholder="Using the app's key" if server_key else "Paste your key",
+                              help="Free key from aistudio.google.com. Kept only in this browser session.")
+    api_key = typed_key or server_key
     model = st.selectbox("Gemini model", gemini_models(api_key) if api_key else FALLBACK_MODELS, disabled=demo_mode,
                          help="Flash-Lite models have the highest free-tier limits.")
     st.caption("⚠️ Free-tier inputs may be used by Google to improve its products.")

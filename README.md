@@ -34,6 +34,13 @@ streamlit run app.py --server.port 8512
 Open http://localhost:8512 and turn on **Demo mode** in the sidebar to explore without a key.
 Run the app from inside the `expense-analyzer` folder so the custom theme in `.streamlit/config.toml` is used.
 
+### Deploy on Streamlit Community Cloud
+
+1. On https://share.streamlit.io click **Create app** and pick this repository, branch `main`.
+2. Main file path: `streamlit_app.py` (it simply runs `app.py`).
+3. Optional: under **Advanced settings → Secrets** add `GEMINI_API_KEY = "your-key"`; otherwise users paste
+   their own key in the sidebar, or use Demo mode.
+
 ### Get a free Gemini API key
 
 1. Go to **https://aistudio.google.com** and sign in with a Google account.
