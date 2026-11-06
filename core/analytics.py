@@ -12,7 +12,7 @@ _DISCRETIONARY = {"Food & Dining", "Groceries", "Transport", "Shopping", "Health
 # Small offline fallback used before (or instead of) the Gemini categorisation.
 _RULES = [
     ("Salary & Income", ("salary", "payroll", "bonus", "honorarium", "interest credit")),
-    ("Rent & Housing", ("rent", "house", "flat", "landlord", "service charge")),
+    ("Rent & Housing", ("rent", "house", "flat", "landlord")),
     ("Bills & Utilities", ("desco", "dpdc", "electric", "titas", "gas bill", "wasa", "water", "utility", "bill pay")),
     ("Mobile & Internet", ("recharge", "topup", "top-up", "internet", "broadband", "data pack", "isp")),
     ("Subscriptions", ("netflix", "spotify", "stream", "subscription", "premium", "cloud", "gym", "membership")),

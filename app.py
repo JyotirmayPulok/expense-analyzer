@@ -149,10 +149,12 @@ if ss.tx is None:
                 '<span class="step">③ Categorise</span><span class="step">④ Insights</span>', unsafe_allow_html=True)
     up_col, help_col = st.columns([3, 2], gap="large")
     with up_col:
-        upload = st.file_uploader("Statement file (CSV, Excel, or text-based PDF)", type=SUPPORTED_TYPES)
+        upload = st.file_uploader("Statement file (CSV, Excel or PDF, including scanned PDFs)", type=SUPPORTED_TYPES)
         if upload is not None and upload.name != ss.raw_name:
             try:
-                ss.raw, ss.raw_name, ss.source = read_table(upload.getvalue(), upload.name), upload.name, "upload"
+                with st.spinner("Reading the statement (scanned PDFs are read with local OCR, this can take a few "
+                                "seconds)…"):
+                    ss.raw, ss.raw_name, ss.source = read_table(upload.getvalue(), upload.name), upload.name, "upload"
             except AnalyzerError as e:
                 st.error(str(e))
         if st.button("Use the synthetic sample statement instead"):
@@ -160,12 +162,17 @@ if ss.tx is None:
             ss.raw, ss.raw_name, ss.source = read_table(p.read_bytes(), p.name), p.name, "upload"
     with help_col:
         st.info("**Tip:** most banks and bKash/Nagad let you export statements as CSV or Excel. "
-                "Scanned PDFs are not supported. Turn on **Demo mode** in the sidebar to explore without a file.")
+                "Scanned PDFs are read with local OCR (Tesseract) on this computer, so check the rows it finds. "
+                "Turn on **Demo mode** in the sidebar to explore without a file.")
 
     if ss.raw is not None:
         raw = ss.raw
         st.markdown(f"#### ② Map the columns of `{ss.raw_name}`")
         st.caption("Preview of the first rows (stays on this computer).")
+        if raw.attrs.get("ocr"):
+            st.info("📷 This PDF has no text layer, so it was read with **OCR** on this computer. Signs come from the "
+                    "balance column when there is one. Dates with no year are given the most recent year that is "
+                    "not in the future. Check the rows below.")
         st.dataframe(raw.head(6), width="stretch", hide_index=True)
         g = guess_mapping(raw)
         cols = list(raw.columns)

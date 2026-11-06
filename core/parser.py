@@ -1,4 +1,4 @@
-"""Read bank / mobile-wallet statements (CSV, XLSX, text PDF) into a clean pandas DataFrame."""
+"""Read bank / mobile-wallet statements (CSV, XLSX, text or scanned PDF) into a clean pandas DataFrame."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 from .common import AnalyzerError
+from .pdf_reader import pdf_to_frame
 from .privacy import mask_text, normalize_description
 
 SUPPORTED_TYPES = ["csv", "xlsx", "xls", "pdf"]
@@ -39,6 +40,7 @@ class Mapping:
 def read_table(data: bytes, filename: str) -> pd.DataFrame:
     """Load the raw table. Finds the header row even when the bank adds a few title lines on top."""
     ext = filename.rsplit(".", 1)[-1].lower()
+    used_ocr = False
     try:
         if ext == "csv":
             text = data.decode("utf-8-sig", errors="replace")
@@ -50,7 +52,7 @@ def read_table(data: bytes, filename: str) -> pd.DataFrame:
             skip = _header_row(raw.head(30).fillna("").values.tolist())
             df = pd.read_excel(io.BytesIO(data), skiprows=skip, dtype=str)
         elif ext == "pdf":
-            df = _read_pdf(data)
+            df, used_ocr = pdf_to_frame(data)
         else:
             raise AnalyzerError(f"Unsupported file type: .{ext}")
     except AnalyzerError:
@@ -62,6 +64,7 @@ def read_table(data: bytes, filename: str) -> pd.DataFrame:
     df = df.loc[:, ~df.columns.str.startswith("Unnamed")] if len(df.columns) > 2 else df
     if df.empty or len(df.columns) < 2:
         raise AnalyzerError("No table found in the file. Export the statement as CSV or Excel and try again.")
+    df.attrs["ocr"] = used_ocr
     return df
 
 
@@ -72,22 +75,6 @@ def _header_row(rows: list[list]) -> int:
         if sum(k in cells for k in keys) >= 2:
             return i
     return 0
-
-
-def _read_pdf(data: bytes) -> pd.DataFrame:
-    """Best effort for text-based PDFs: lines that start with a date and end with an amount."""
-    try:
-        import pypdfium2 as pdfium
-    except ImportError as exc:  # pragma: no cover
-        raise AnalyzerError("PDF support needs pypdfium2 (pip install pypdfium2).") from exc
-    pdf = pdfium.PdfDocument(data)
-    text = "\n".join(pdf[i].get_textpage().get_text_range() for i in range(len(pdf)))
-    line_re = re.compile(r"^(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2})\s+(.+?)\s+(-?[\d,]+\.\d{2})\s*(Dr|Cr)?\b",
-                         re.I)
-    rows = [m.groups() for ln in text.splitlines() if (m := line_re.match(ln.strip()))]
-    if not rows:
-        raise AnalyzerError("No transaction lines found in this PDF. It may be scanned; export CSV/Excel instead.")
-    return pd.DataFrame(rows, columns=["Date", "Description", "Amount", "Type"]).fillna("")
 
 
 def guess_mapping(df: pd.DataFrame) -> Mapping:
@@ -131,8 +118,11 @@ def apply_mapping(raw: pd.DataFrame, m: Mapping) -> tuple[pd.DataFrame, int]:
         if col and col not in raw.columns:
             raise AnalyzerError(f"Column '{col}' is not in the file.")
     df = pd.DataFrame()
-    df["date"] = pd.to_datetime(raw[m.date].astype(str).str.translate(_BN_DIGITS).str.strip(),
-                                dayfirst=m.dayfirst, errors="coerce", format="mixed")
+    dates = raw[m.date].astype(str).str.translate(_BN_DIGITS).str.strip()
+    # ISO dates (2026-10-02) are never day-first; parsing them with dayfirst=True would swap day and month.
+    iso = dates.str.match(r"^\d{4}-\d{1,2}-\d{1,2}")
+    df["date"] = pd.to_datetime(dates.where(~iso), dayfirst=m.dayfirst, errors="coerce", format="mixed")
+    df.loc[iso, "date"] = pd.to_datetime(dates[iso].str[:10], errors="coerce", format="%Y-%m-%d")
     df["description"] = raw[m.description].fillna("").astype(str).str.strip()
     if m.mode == "debit_credit":
         debit = to_number(raw[m.debit]).abs().fillna(0)
