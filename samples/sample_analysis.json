@@ -1,0 +1,354 @@
+{
+ "source": "Pre-generated demo data (not from a live Gemini call)",
+ "model": "demo data",
+ "currency": "BDT",
+ "categories": {
+  "salary credit fakecorp fictional ltd": [
+   "FakeCorp Fictional Ltd",
+   "Salary & Income"
+  ],
+  "ridenow demo ride": [
+   "RideNow",
+   "Transport"
+  ],
+  "fund transfer rent to landlord": [
+   "Landlord (rent)",
+   "Rent & Housing"
+  ],
+  "pos purchase card freshbasket demo supershop": [
+   "FreshBasket",
+   "Groceries"
+  ],
+  "dps installment demo bank savings scheme": [
+   "Demo Bank DPS",
+   "Savings & Investments"
+  ],
+  "fitzone demo gym membership": [
+   "FitZone Gym",
+   "Subscriptions"
+  ],
+  "pos purchase card kacchi corner demo restaurant": [
+   "Kacchi Corner",
+   "Food & Dining"
+  ],
+  "bill pay desco demo electricity": [
+   "DESCO (demo)",
+   "Bills & Utilities"
+  ],
+  "titas demo gas bill payment": [
+   "Titas Gas (demo)",
+   "Bills & Utilities"
+  ],
+  "linknet demo isp home internet": [
+   "LinkNet ISP",
+   "Mobile & Internet"
+  ],
+  "pos purchase card streamflix demo subscription": [
+   "StreamFlix",
+   "Subscriptions"
+  ],
+  "mobile recharge": [
+   "Mobile recharge",
+   "Mobile & Internet"
+  ],
+  "pos purchase card fooddash demo delivery": [
+   "FoodDash",
+   "Food & Dining"
+  ],
+  "pos purchase card tunebox music premium": [
+   "TuneBox Music",
+   "Subscriptions"
+  ],
+  "ridenow demo ride xbqqaedqec": [
+   "RideNow",
+   "Transport"
+  ],
+  "cloudvault demo storage plan": [
+   "CloudVault",
+   "Subscriptions"
+  ],
+  "pos purchase card cafe placeholder": [
+   "Cafe Placeholder",
+   "Food & Dining"
+  ],
+  "bkash received from": [
+   "bKash transfer in",
+   "Transfers In"
+  ],
+  "fuel station demo pump": [
+   "Fuel Station",
+   "Transport"
+  ],
+  "booknook demo books and courses": [
+   "BookNook",
+   "Education"
+  ],
+  "medicare demo pharmacy": [
+   "MediCare Pharmacy",
+   "Health"
+  ],
+  "shopease demo online order": [
+   "ShopEase",
+   "Shopping"
+  ],
+  "bkash cash out agent": [
+   "bKash cash out",
+   "Cash Withdrawal"
+  ],
+  "cash out charge": [
+   "bKash cash-out fee",
+   "Fees & Charges"
+  ],
+  "bkash send money to": [
+   "bKash send money",
+   "Transfers Out"
+  ],
+  "account maintenance fee and vat": [
+   "Bank fees",
+   "Fees & Charges"
+  ],
+  "bill pay desco demo electricity epsjyerzul": [
+   "DESCO (demo)",
+   "Bills & Utilities"
+  ],
+  "mobile recharge avgjshgktu": [
+   "Mobile recharge",
+   "Mobile & Internet"
+  ],
+  "pos purchase card gadgethub demo electronics": [
+   "GadgetHub Electronics",
+   "Shopping"
+  ],
+  "interest credit savings": [
+   "Savings interest",
+   "Salary & Income"
+  ],
+  "skyhop demo air ticket dac cxb": [
+   "SkyHop Air",
+   "Travel"
+  ],
+  "bkash received from dyqecbrnbk": [
+   "bKash transfer in",
+   "Transfers In"
+  ],
+  "ridenow demo ride ppsflrmela": [
+   "RideNow",
+   "Transport"
+  ]
+ },
+ "insights": {
+  "summary": "Over 3 months you received BDT 313,312 and spent BDT 277,386, leaving BDT 35,926 (a 11% savings rate) plus BDT 15,000 already moved into a DPS. Rent is the single biggest cost. September was the tightest month because of a one-off electronics purchase. Day-to-day spending on food, rides and subscriptions is steady but has room to trim.",
+  "health_score": 68,
+  "spending_patterns": [
+   {
+    "title": "Rent is over a quarter of spending",
+    "detail": "Rent & Housing is BDT 75,000 (27% of expenses). That is normal for Dhaka but leaves less room elsewhere."
+   },
+   {
+    "title": "September spending spiked",
+    "detail": "Expenses were BDT 115,302 in September vs BDT 76,782 in August, mainly the GadgetHub purchase."
+   },
+   {
+    "title": "Eating out is a steady habit",
+    "detail": "Food & Dining averaged BDT 10,767 a month over 23 orders; weekend (Fri/Sat) orders are noticeably larger."
+   },
+   {
+    "title": "Many small ride payments add up",
+    "detail": "Transport totalled BDT 14,520, mostly small RideNow trips of BDT 150-450 each."
+   },
+   {
+    "title": "Subscriptions are a fixed monthly cost",
+    "detail": "Four subscriptions cost about BDT 3,858 every month, before you use any of them."
+   }
+  ],
+  "recurring_payments": [
+   {
+    "merchant": "Landlord (rent)",
+    "typical_amount": 25000.0,
+    "frequency": "monthly",
+    "is_subscription": false,
+    "note": "Essential; keep."
+   },
+   {
+    "merchant": "Demo Bank DPS",
+    "typical_amount": 5000.0,
+    "frequency": "monthly",
+    "is_subscription": false,
+    "note": "Good habit; keep this savings transfer."
+   },
+   {
+    "merchant": "bKash cash out",
+    "typical_amount": 3000.0,
+    "frequency": "monthly",
+    "is_subscription": false,
+    "note": "Regular bill; check the amount each month."
+   },
+   {
+    "merchant": "FitZone Gym",
+    "typical_amount": 2500.0,
+    "frequency": "monthly",
+    "is_subscription": true,
+    "note": "Review: keep only if you go at least 8 times a month."
+   },
+   {
+    "merchant": "DESCO (demo)",
+    "typical_amount": 1840.0,
+    "frequency": "monthly",
+    "is_subscription": false,
+    "note": "Regular bill; check the amount each month."
+   },
+   {
+    "merchant": "LinkNet ISP",
+    "typical_amount": 1200.0,
+    "frequency": "monthly",
+    "is_subscription": false,
+    "note": "Regular bill; check the amount each month."
+   },
+   {
+    "merchant": "Titas Gas (demo)",
+    "typical_amount": 1080.0,
+    "frequency": "monthly",
+    "is_subscription": false,
+    "note": "Regular bill; check the amount each month."
+   },
+   {
+    "merchant": "StreamFlix",
+    "typical_amount": 799.0,
+    "frequency": "monthly",
+    "is_subscription": true,
+    "note": "Consider pausing in busy months."
+   },
+   {
+    "merchant": "TuneBox Music",
+    "typical_amount": 299.0,
+    "frequency": "monthly",
+    "is_subscription": true,
+    "note": "Low cost; keep if used daily."
+   },
+   {
+    "merchant": "CloudVault",
+    "typical_amount": 260.0,
+    "frequency": "monthly",
+    "is_subscription": true,
+    "note": "Check if a free storage tier is enough."
+   },
+   {
+    "merchant": "Bank fees",
+    "typical_amount": 172.5,
+    "frequency": "monthly",
+    "is_subscription": false,
+    "note": "Regular bill; check the amount each month."
+   },
+   {
+    "merchant": "bKash cash-out fee",
+    "typical_amount": 55.5,
+    "frequency": "monthly",
+    "is_subscription": false,
+    "note": "Regular bill; check the amount each month."
+   }
+  ],
+  "unusual_transactions": [
+   {
+    "txn_id": 74,
+    "reason": "A one-off BDT 38,500 electronics purchase, about 10x a normal shopping payment.",
+    "severity": "high"
+   },
+   {
+    "txn_id": 126,
+    "reason": "Two identical FoodDash charges on the same day; check it was not a double charge.",
+    "severity": "medium"
+   },
+   {
+    "txn_id": 127,
+    "reason": "Two identical FoodDash charges on the same day; check it was not a double charge.",
+    "severity": "medium"
+   },
+   {
+    "txn_id": 115,
+    "reason": "Air ticket; a one-off travel cost worth planning for in advance.",
+    "severity": "low"
+   }
+  ],
+  "saving_tips": [
+   "Set up an automatic savings transfer on payday (the 1st), before any spending starts.",
+   "Keep a small 'big purchase' fund each month so items like the GadgetHub buy do not squeeze one month.",
+   "Review the four subscriptions (about BDT 3,858/month); cancelling one saves BDT 3,000+ a year.",
+   "Plan two home-cooked weekend meals; food delivery on Fri/Sat is your largest food cost.",
+   "Group short trips or use the bus or metro for regular routes to cut many small ride payments.",
+   "Withdraw cash less often: each bKash cash out costs a fee of about BDT 55.",
+   "Build an emergency fund of 3-6 months of essential costs before increasing discretionary spending."
+  ],
+  "budget_suggestions": [
+   {
+    "category": "Rent & Housing",
+    "suggested_monthly_budget": 25000.0,
+    "rationale": "Recent average BDT 25,000/month."
+   },
+   {
+    "category": "Groceries",
+    "suggested_monthly_budget": 12500.0,
+    "rationale": "Recent average BDT 14,733/month."
+   },
+   {
+    "category": "Food & Dining",
+    "suggested_monthly_budget": 8000.0,
+    "rationale": "Recent average BDT 10,767/month."
+   },
+   {
+    "category": "Transport",
+    "suggested_monthly_budget": 4500.0,
+    "rationale": "Recent average BDT 4,840/month."
+   },
+   {
+    "category": "Bills & Utilities",
+    "suggested_monthly_budget": 3300.0,
+    "rationale": "Recent average BDT 3,023/month."
+   },
+   {
+    "category": "Mobile & Internet",
+    "suggested_monthly_budget": 2400.0,
+    "rationale": "Recent average BDT 2,763/month."
+   },
+   {
+    "category": "Subscriptions",
+    "suggested_monthly_budget": 3200.0,
+    "rationale": "Recent average BDT 3,858/month."
+   },
+   {
+    "category": "Shopping",
+    "suggested_monthly_budget": 5000.0,
+    "rationale": "Recent average BDT 17,267/month."
+   },
+   {
+    "category": "Health",
+    "suggested_monthly_budget": 1200.0,
+    "rationale": "Recent average BDT 1,267/month."
+   },
+   {
+    "category": "Cash Withdrawal",
+    "suggested_monthly_budget": 3000.0,
+    "rationale": "Recent average BDT 3,000/month."
+   },
+   {
+    "category": "Transfers Out",
+    "suggested_monthly_budget": 2500.0,
+    "rationale": "Recent average BDT 2,667/month."
+   },
+   {
+    "category": "Fees & Charges",
+    "suggested_monthly_budget": 250.0,
+    "rationale": "Recent average BDT 228/month."
+   },
+   {
+    "category": "Travel",
+    "suggested_monthly_budget": 1500.0,
+    "rationale": "Recent average BDT 2,600/month."
+   },
+   {
+    "category": "Education",
+    "suggested_monthly_budget": 600.0,
+    "rationale": "Recent average BDT 450/month."
+   }
+  ]
+ }
+}
