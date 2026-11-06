@@ -14,7 +14,8 @@ from dotenv import load_dotenv
 
 from core import analytics as an
 from core.common import DISCLAIMER, MAX_UNIQUE_DESCRIPTIONS, AnalyzerError, categorize_prompt, unique_descriptions
-from core.gemini_llm import FALLBACK_MODELS, categorize, insights, list_models, make_client
+from core import browser_store
+from core.gemini_llm import FALLBACK_MODELS, categorize, check_key, insights, make_client
 from core.parser import AMOUNT_MODES, MAX_ROWS, SUPPORTED_TYPES, Mapping, apply_mapping, guess_mapping, read_table
 from core.report import build_pdf
 from core.schema import CATEGORIES, INCOME_CATEGORIES, InsightsResult
@@ -37,6 +38,8 @@ html, body, [class*="css"], .stMarkdown, .stButton button {font-family: 'DM Sans
 [data-testid="stSidebar"] * {color: #E7F5EC;}
 [data-testid="stSidebar"] input, [data-testid="stSidebar"] [data-baseweb="select"] * {color: #0B3B2E !important;}
 [data-testid="stSidebar"] .stAlert * {color: #0B3B2E !important;}
+[data-testid="stSidebar"] [data-testid="stAlert"] > div {background-color: #F4FBF6 !important; border-radius: 8px;}
+[data-testid="stSidebar"] .stButton button, [data-testid="stSidebar"] .stButton button * {color: #0B3B2E !important;}
 .ledger {display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
          background: repeating-linear-gradient(0deg,#FFFDF5 0 27px,#E6F2EB 27px 28px); border:1px solid #CFE6D8;
          border-left: 10px solid #059669; border-radius: 6px; padding: 1rem 1.4rem; margin-bottom: 1rem;}
@@ -64,13 +67,15 @@ html, body, [class*="css"], .stMarkdown, .stButton button {font-family: 'DM Sans
 # ---------- state ----------
 ss = st.session_state
 for key, val in {"raw": None, "raw_name": "", "tx": None, "dropped": 0, "insights": None, "cat_source": "",
-                 "ins_source": "", "budgets": {}, "source": "", "edit_rev": 0}.items():
+                 "ins_source": "", "budgets": {}, "source": "", "edit_rev": 0, "up_rev": 0, "upload_error": "",
+                 "user_key": "", "key_loaded": False, "key_saved": False, "store_cmd": None}.items():
     ss.setdefault(key, val)
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
-def gemini_models(key: str) -> list[str]:
-    return list_models(key)
+@st.cache_data(ttl=600, show_spinner=False)
+def verify_key(key: str) -> tuple[bool, str, list[str]]:
+    """(connected, error message, models). One free model-list call per key, cached for 10 minutes."""
+    return check_key(key)
 
 
 @st.cache_data(show_spinner=False)
@@ -93,21 +98,96 @@ def reset(keep_raw: bool = False) -> None:
         ss.raw, ss.raw_name, ss.source = None, "", ""
 
 
+# ---------- callbacks (run before the script, so they may set widget state) ----------
+def _key_typed() -> None:
+    value = ss.key_input.strip()
+    if value:
+        ss.user_key, ss.key_saved = value, False
+
+
+def _forget_key() -> None:
+    ss.user_key, ss.key_input, ss.key_saved = "", "", False
+    ss.store_cmd = browser_store.command("clear")
+
+
+def _remember_changed() -> None:
+    if not ss.remember_key:  # unticked: remove the copy in this browser
+        ss.key_saved = False
+        ss.store_cmd = browser_store.command("clear")
+
+
+def _demo_changed() -> None:
+    ss.up_rev += 1  # clear the upload box
+
+
+def _load_upload(widget_key: str) -> None:
+    f = ss.get(widget_key)
+    if f is None:
+        return
+    try:
+        raw = read_table(f.getvalue(), f.name)
+    except AnalyzerError as e:
+        ss.upload_error = f"{f.name}: {e}"
+        return
+    reset()
+    ss.raw, ss.raw_name, ss.source, ss.upload_error = raw, f.name, "upload", ""
+    ss.demo_toggle = False
+
+
+def _load_sample() -> None:
+    path = SAMPLES / "sample_statement.csv"
+    reset()
+    ss.raw, ss.raw_name, ss.source, ss.upload_error = read_table(path.read_bytes(), path.name), path.name, "upload", ""
+    ss.demo_toggle = False
+    ss.up_rev += 1
+
+
 # ---------- sidebar ----------
 with st.sidebar:
     st.markdown("## 💸 Settings")
-    demo_mode = st.toggle("Demo mode (no API key needed)", value=False,
+    demo_mode = st.toggle("Demo mode (no API key needed)", key="demo_toggle", on_change=_demo_changed,
                           help="Loads a synthetic 3-month BDT statement with pre-generated categories and insights.")
     cur_label = st.selectbox("Currency", list(CURRENCIES), index=0)
     SYM, CODE = CURRENCIES[cur_label]
-    # A key from .env / Streamlit secrets stays on the server: it is never put into the widget,
-    # because a widget's value is sent to the visitor's browser.
+    # Key sources: typed now > saved in THIS browser (localStorage) > the app's own key from .env / secrets.
+    # The app's key stays on the server: it is never put into a widget, because widget values reach the browser.
     server_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
-    typed_key = st.text_input("Gemini API key", type="password", disabled=demo_mode,
-                              placeholder="Using the app's key" if server_key else "Paste your key",
-                              help="Free key from aistudio.google.com. Kept only in this browser session.")
-    api_key = typed_key or server_key
-    model = st.selectbox("Gemini model", gemini_models(api_key) if api_key else FALLBACK_MODELS, disabled=demo_mode,
+    saved, done = browser_store.sync(ss.store_cmd)
+    if ss.store_cmd and done == ss.store_cmd["token"]:
+        ss.store_cmd = None  # the browser confirmed the save / clear
+    if saved is not None and not ss.key_loaded:
+        ss.key_loaded = True
+        if saved and not ss.user_key:
+            ss.user_key, ss.key_saved = saved, True
+    if ss.user_key:
+        hint = f"Saved key ••••{ss.user_key[-4:]} (paste to replace)"
+    else:
+        hint = "Using the app's key (paste yours to replace)" if server_key else "Paste your free Gemini key"
+    st.text_input("Gemini API key", type="password", key="key_input", disabled=demo_mode, placeholder=hint,
+                  on_change=_key_typed, help="Free key from aistudio.google.com.")
+    remember = st.checkbox("Remember my key on this device", value=True, key="remember_key", disabled=demo_mode,
+                           on_change=_remember_changed,
+                           help="Saved only in this browser (localStorage), never on the server. "
+                                "Untick on a shared computer.")
+    api_key = ss.user_key or server_key
+    connected, key_error, models = verify_key(api_key) if api_key else (False, "", FALLBACK_MODELS)
+    if connected and ss.user_key and remember and not ss.key_saved:
+        ss.store_cmd = browser_store.command("save", ss.user_key)
+        ss.key_saved = True
+        st.rerun()  # the store at the top of the sidebar sends it to the browser
+    if demo_mode:
+        st.caption("Demo mode uses pre-generated results; no key needed.")
+    elif connected:
+        where = ("your key, saved on this device" if ss.user_key and ss.key_saved else
+                 "your key (not saved)" if ss.user_key else "the app's key")
+        st.success(f"✅ Connected to Gemini · {where}")
+    elif api_key:
+        st.error(f"❌ Not connected. {key_error}")
+    else:
+        st.info("Add a key to use the AI steps. Get one free at aistudio.google.com.")
+    if ss.user_key and not demo_mode:
+        st.button("Forget my key", on_click=_forget_key, width="stretch")
+    model = st.selectbox("Gemini model", models, disabled=demo_mode,
                          help="Flash-Lite models have the highest free-tier limits.")
     st.caption("⚠️ Free-tier inputs may be used by Google to improve its products.")
     st.markdown("### 🔒 Privacy")
@@ -121,6 +201,7 @@ with st.sidebar:
     st.caption(DISCLAIMER)
     if ss.tx is not None and not demo_mode and st.button("🔄 Start over", width="stretch"):
         reset()
+        ss.up_rev += 1
         st.rerun()
 
 # ---------- header ----------
@@ -131,6 +212,18 @@ st.markdown(
     '<div class="stamp">🔒 MASKED BEFORE AI</div></div>',
     unsafe_allow_html=True,
 )
+
+# ---------- upload bar: always visible, a new file starts a fresh analysis ----------
+with st.container(border=True):
+    up_col, sample_col = st.columns([4, 1.2], vertical_alignment="center")
+    up_key = f"uploader_{ss.up_rev}"
+    up_col.file_uploader("📤 Upload a statement: CSV, Excel or PDF (scanned PDFs too)", type=SUPPORTED_TYPES,
+                         key=up_key, on_change=_load_upload, args=(up_key,),
+                         help="Read on this computer. Scanned PDFs are read with local OCR.")
+    sample_col.button("Use sample statement", on_click=_load_sample, width="stretch",
+                      help="A synthetic 3-month BDT statement with fake names.")
+    if ss.upload_error:
+        st.error(ss.upload_error)
 
 # ---------- data source ----------
 if demo_mode:
@@ -147,23 +240,10 @@ elif ss.source == "demo":
 if ss.tx is None:
     st.markdown('<span class="step">① Upload</span><span class="step">② Map columns</span>'
                 '<span class="step">③ Categorise</span><span class="step">④ Insights</span>', unsafe_allow_html=True)
-    up_col, help_col = st.columns([3, 2], gap="large")
-    with up_col:
-        upload = st.file_uploader("Statement file (CSV, Excel or PDF, including scanned PDFs)", type=SUPPORTED_TYPES)
-        if upload is not None and upload.name != ss.raw_name:
-            try:
-                with st.spinner("Reading the statement (scanned PDFs are read with local OCR, this can take a few "
-                                "seconds)…"):
-                    ss.raw, ss.raw_name, ss.source = read_table(upload.getvalue(), upload.name), upload.name, "upload"
-            except AnalyzerError as e:
-                st.error(str(e))
-        if st.button("Use the synthetic sample statement instead"):
-            p = SAMPLES / "sample_statement.csv"
-            ss.raw, ss.raw_name, ss.source = read_table(p.read_bytes(), p.name), p.name, "upload"
-    with help_col:
-        st.info("**Tip:** most banks and bKash/Nagad let you export statements as CSV or Excel. "
-                "Scanned PDFs are read with local OCR (Tesseract) on this computer, so check the rows it finds. "
-                "Turn on **Demo mode** in the sidebar to explore without a file.")
+    if ss.raw is None:
+        st.info("**Tip:** most banks and bKash/Nagad let you export statements as CSV or Excel. Scanned PDFs are "
+                "read with local OCR (Tesseract) on this computer, so check the rows it finds. Turn on "
+                "**Demo mode** in the sidebar to explore without a file.")
 
     if ss.raw is not None:
         raw = ss.raw

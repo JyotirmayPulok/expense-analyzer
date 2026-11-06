@@ -10,7 +10,7 @@ budgeting dashboard and a downloadable multi-page PDF report. Built with **Strea
 
 | Area | What you get |
 |---|---|
-| **Upload & mapping** | CSV, XLSX or text-based PDF. Title rows above the header are skipped. Pick the date, description and amount columns. Amounts can be one signed column, separate debit/credit columns, or amount + Dr/Cr column. Day-first dates, Bengali digits (০-৯), `৳ 1,200`, `(500)` and `1,000 Dr` are understood. |
+| **Upload & mapping** | An upload bar stays at the top of every screen. CSV, XLSX, text PDF or scanned PDF (local OCR with Tesseract). Title rows above the header are skipped. Pick the date, description and amount columns. Amounts can be one signed column, separate debit/credit columns, or amount + Dr/Cr column. Day-first dates, Bengali digits (০-৯), `৳ 1,200`, `(500)` and `1,000 Dr` are understood. |
 | **Privacy** | Card, account and phone numbers, emails and long reference IDs are **masked** before anything leaves your computer. You can preview exactly what will be sent. |
 | **AI categorisation** | **One** batched Gemini request with the unique masked descriptions (max 400) plus money direction (in/out). Structured output via a Pydantic schema. Offline keyword rules are used until you run it. |
 | **AI insights** | **One** Gemini request with **aggregated totals only**: spending patterns, recurring payments/subscriptions, unusual transactions, saving tips, suggested budgets per category and a 0-100 budget-health score. |
@@ -46,6 +46,9 @@ Run the app from inside the `expense-analyzer` folder so the custom theme in `.s
 1. Go to **https://aistudio.google.com** and sign in with a Google account.
 2. Click **Get API key → Create API key** (no credit card needed for the free tier).
 3. Paste it into the sidebar, or put `GEMINI_API_KEY=...` in `.env`.
+   The sidebar shows **✅ Connected** once the key works (checked with a free model-list call).
+   With **Remember my key on this device** ticked, the key is saved in *your browser* (localStorage), never on
+   the server, so you don't need to paste it again. **Forget my key** removes it.
 4. Pick a **Flash-Lite** model in the sidebar; it has the highest free-tier limits.
 
 Free-tier notes:

@@ -34,22 +34,34 @@ def make_client(api_key: str | None) -> genai.Client:
         raise AnalyzerError("No Gemini API key found. Enter one in the sidebar or set GEMINI_API_KEY in .env.") from exc
 
 
+def _model_names(client: genai.Client) -> list[str]:
+    names = [
+        m.name.removeprefix("models/")
+        for m in client.models.list()
+        if m.name and m.name.startswith("models/gemini")
+        and "generateContent" in (m.supported_actions or [])
+        and not any(s in m.name for s in _SKIP)
+    ]
+    names = sorted(set(names), reverse=True)  # newest versions first
+    return sorted(names, key=lambda n: (0 if "flash-lite" in n else 1 if "flash" in n else 2))
+
+
 def list_models(api_key: str) -> list[str]:
     """Text-generation Gemini models available to this key; Flash-Lite models first."""
     try:
-        names = [
-            m.name.removeprefix("models/")
-            for m in make_client(api_key).models.list()
-            if m.name and m.name.startswith("models/gemini")
-            and "generateContent" in (m.supported_actions or [])
-            and not any(s in m.name for s in _SKIP)
-        ]
+        return _model_names(make_client(api_key)) or FALLBACK_MODELS
     except Exception:
         return FALLBACK_MODELS
-    if not names:
-        return FALLBACK_MODELS
-    names = sorted(set(names), reverse=True)  # newest versions first
-    return sorted(names, key=lambda n: (0 if "flash-lite" in n else 1 if "flash" in n else 2))
+
+
+def check_key(api_key: str) -> tuple[bool, str, list[str]]:
+    """Validate a key with a free model-list request (no generation, no quota used).
+
+    Returns (connected, user-facing error message, available models)."""
+    try:
+        return True, "", _model_names(make_client(api_key)) or FALLBACK_MODELS
+    except Exception as exc:
+        return False, str(_wrap_errors(exc)), FALLBACK_MODELS
 
 
 def _wrap_errors(exc: Exception) -> AnalyzerError:
